@@ -1,0 +1,19 @@
+[Unit]
+Description=matchrecorder
+
+[Service]
+ExecStart=/usr/bin/python3 -u matchrecorder.py
+WorkingDirectory=/srv/matchrecorder
+
+User=nobody
+Group=nogroup
+
+Restart=always
+
+Environment=EVENT_ID=event_id
+Environment=TWITCH_ID=twitch_id
+Environment=TWITTER_USER=twitter_user
+Environment=GAME_ID=game_id
+
+[Install]
+WantedBy=multi-user.target

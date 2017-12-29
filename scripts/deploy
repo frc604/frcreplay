@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# vim: set tw=99:
+
+set -ef -o pipefail
+
+function run {
+  if [[ ! -z "$5" ]]; then
+    if [[ "$1" != "$5" ]]; then
+      return
+    fi
+  fi
+
+  local event_id="$1"
+  local twitch_id="$2"
+  local twitter_user="$3"
+  local game_id="$4"
+
+  local machine_id="matchrecorder-$event_id"
+
+  echo "******************** deploying to $machine_id"
+
+  {
+    set -x
+
+    docker-machine ssh "$machine_id" "apt-get update"
+    docker-machine ssh "$machine_id" "apt-get -y install build-essential fail2ban python3 python3-pip python3-setuptools python3-wheel ffmpeg tesseract-ocr"
+
+    docker-machine ssh "$machine_id" "mkdir -p /srv/matchrecorder"
+    docker-machine scp -r matchobserver "$machine_id:/srv/matchrecorder/"
+    docker-machine scp matchrecorder.py "$machine_id:/srv/matchrecorder/"
+    docker-machine scp requirements.txt "$machine_id:/srv/matchrecorder/"
+    docker-machine scp streamconnector.py "$machine_id:/srv/matchrecorder/"
+    docker-machine scp -r tessdata "$machine_id:/srv/matchrecorder/"
+    docker-machine scp videohandler.py "$machine_id:/srv/matchrecorder/"
+    docker-machine ssh "$machine_id" "chmod -R 755 /srv/matchrecorder"
+
+    docker-machine ssh "$machine_id" "mkdir -p /srv/matchrecorder/videos"
+    docker-machine ssh "$machine_id" "mkdir -p /srv/matchrecorder/videos/recording"
+    docker-machine ssh "$machine_id" "mkdir -p /srv/matchrecorder/videos/ready"
+    docker-machine ssh "$machine_id" "chmod -R 777 /srv/matchrecorder"
+
+    docker-machine ssh "$machine_id" "pip3 install -r /srv/matchrecorder/requirements.txt"
+    docker-machine ssh "$machine_id" "sed -i -e 's,getargspec,getfullargspec,' /usr/local/lib/python3.5/dist-packages/streamlink/stream/http.py"
+
+    docker-machine scp matchrecorder.service "$machine_id:/etc/systemd/system/"
+    docker-machine ssh "$machine_id" "sed -i -e 's,event_id,$event_id,' /etc/systemd/system/matchrecorder.service"
+    docker-machine ssh "$machine_id" "sed -i -e 's,twitch_id,$twitch_id,' /etc/systemd/system/matchrecorder.service"
+    docker-machine ssh "$machine_id" "sed -i -e 's,twitter_user,$twitter_user,' /etc/systemd/system/matchrecorder.service"
+    docker-machine ssh "$machine_id" "sed -i -e 's,game_id,$game_id,' /etc/systemd/system/matchrecorder.service"
+    docker-machine ssh "$machine_id" "systemctl daemon-reload"
+    docker-machine ssh "$machine_id" "systemctl enable matchrecorder"
+    docker-machine ssh "$machine_id" "systemctl restart matchrecorder"
+
+    sleep 5
+    docker-machine ssh "$machine_id" "systemctl status matchrecorder"
+  }
+}
+
+source scripts/events.sh

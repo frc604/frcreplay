@@ -1,0 +1,28 @@
+#!/bin/bash
+
+function run {
+  if [[ ! -z "$5" ]]; then
+    if [[ "$1" != "$5" ]]; then
+      return
+    fi
+  fi
+
+  local event_id="$1"
+  local twitch_id="$2"
+
+  local machine_id="matchrecorder-$event_id"
+
+  {
+    while true; do
+      if docker-machine ssh "$machine_id" "echo" >/dev/null 2>&1; then
+        docker-machine ssh "$machine_id" "journalctl -a -f -u matchrecorder"
+      fi
+      sleep 1
+    done
+  } &
+}
+
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+source scripts/events.sh
+sleep infinity

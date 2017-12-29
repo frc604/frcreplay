@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker-machine ssh "matchrecorder-$1" "journalctl -a -u matchrecorder"

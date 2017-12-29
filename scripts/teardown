@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# vim: set tw=99:
+
+set -ef -o pipefail
+
+function run {
+  if [[ ! -z "$5" ]]; then
+    if [[ "$1" != "$5" ]]; then
+      return
+    fi
+  fi
+
+  local event_id="$1"
+  local twitch_id="$2"
+
+  local machine_id="matchrecorder-$event_id"
+
+  echo "******************** tearing down $machine_id"
+
+  { 
+    set -x
+    docker-machine rm -y "$machine_id"
+  }
+}
+
+source scripts/events.sh

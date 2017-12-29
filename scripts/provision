@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# vim: set tw=99:
+
+set -ef -o pipefail
+
+source credentials.sh
+VULTR_REGION_ID='12'
+VULTR_PLAN_ID='201'
+VULTR_OS_ID='215'
+
+function run {
+  if [[ ! -z "$5" ]]; then
+    if [[ "$1" != "$5" ]]; then
+      return
+    fi
+  fi
+
+  local event_id="$1"
+  local twitch_id="$2"
+
+  local machine_id="matchrecorder-$event_id"
+
+  if docker-machine ls | grep "$machine_id" >/dev/null; then
+    echo "******************** skipping existing $machine_id"
+    return
+  fi
+
+  echo "******************** provisioning $machine_id"
+
+  {
+    set -x
+
+    docker-machine create --driver vultr \
+                          --vultr-api-key "$VULTR_API_KEY" \
+                          --vultr-region-id "$VULTR_REGION_ID" \
+                          --vultr-plan-id "$VULTR_PLAN_ID" \
+                          --vultr-os-id "$VULTR_OS_ID" \
+                          --vultr-ipv6 \
+                          "$machine_id"
+
+    docker-machine ip "$machine_id"
+
+    docker-machine ssh "$machine_id" "apt-get update"
+    docker-machine ssh "$machine_id" "apt-get -y upgrade"
+
+    docker-machine ssh "$machine_id" "ufw default deny"
+    docker-machine ssh "$machine_id" "ufw allow ssh"
+    docker-machine ssh "$machine_id" "ufw allow 2376"
+    docker-machine ssh "$machine_id" "ufw --force enable"
+  }
+}
+
+source scripts/events.sh
