@@ -63,7 +63,7 @@ VULTR_API_KEY='<vultr api key>'
 Finally, you'll want to set up a `scripts/events.sh` file with a configuration line for each event
 you'll be covering. A separate server will be provisioned for each of these, at $0.007/hour at the
 time of writing (check the [Vultr pricing page](https://www.vultr.com/pricing/) for up-to-date
-information). The configuration format is as followS:
+information). The configuration format is as follows:
 
 ```bash
 event '<event hashtag>' '<Twitch username for livestream>' '<Twitter account username to post to>' '<game type such as FRC-2017>' "$1"
