@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function run {
+function event {
   if [[ ! -z "$5" ]]; then
     if [[ "$1" != "$5" ]]; then
       return

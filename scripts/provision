@@ -9,7 +9,7 @@ VULTR_REGION_ID='12'
 VULTR_PLAN_ID='201'
 VULTR_OS_ID='215'
 
-function run {
+function event {
   if [[ ! -z "$5" ]]; then
     if [[ "$1" != "$5" ]]; then
       return

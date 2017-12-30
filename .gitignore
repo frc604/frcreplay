@@ -1,5 +1,6 @@
 credentials.json
 scripts/credentials.sh
+scripts/events.sh
 
 samples/
 training/
