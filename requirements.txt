@@ -11,7 +11,7 @@ olefile==0.44
 opencv-contrib-python==3.2.0.7
 Pillow==4.1.0
 prawcore==0.8.0
-pycryptodome==3.4.5
+pycryptodome==3.7.0
 pytesseract==0.1.6
 python-twitter==3.2.1
 requests==2.13.0
